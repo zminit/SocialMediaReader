@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SocialMediaReader V0 开发文档</title>
+  <style>
+    :root {
+      --bg: #f7f4ed;
+      --paper: #fffaf1;
+      --ink: #1d2430;
+      --muted: #667085;
+      --line: #d9d0bf;
+      --accent: #256d85;
+      --accent-2: #c65d3a;
+      --code-bg: #eef2ef;
+      --ok: #2f7d4f;
+      --warn: #a15c17;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(37, 109, 133, 0.08), transparent 32%),
+        linear-gradient(225deg, rgba(198, 93, 58, 0.08), transparent 30%),
+        var(--bg);
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Microsoft YaHei", serif;
+      line-height: 1.72;
+    }
+
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 40px auto 72px;
+      padding: 44px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 80px rgba(29, 36, 48, 0.10);
+    }
+
+    header {
+      padding-bottom: 28px;
+      border-bottom: 2px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 52px 0 16px;
+      padding-left: 14px;
+      border-left: 5px solid var(--accent);
+      font-size: 26px;
+      line-height: 1.25;
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      color: var(--accent);
+      font-size: 19px;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+      margin: 10px 0 16px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    code,
+    pre {
+      font-family: "Cascadia Code", "Consolas", monospace;
+    }
+
+    code {
+      padding: 2px 5px;
+      background: var(--code-bg);
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 18px;
+      background: #f0eadc;
+      color: #22313a;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      line-height: 1.55;
+    }
+
+    table {
+      width: 100%;
+      margin: 16px 0 26px;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(37, 109, 133, 0.10);
+      color: #163f4d;
+      font-weight: 700;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.48);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .note {
+      margin: 18px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent-2);
+      background: rgba(198, 93, 58, 0.08);
+    }
+
+    .ok {
+      color: var(--ok);
+      font-weight: 700;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .flow {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .architecture {
+      margin: 22px 0 24px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbf6ea;
+      overflow-x: auto;
+    }
+
+    .architecture-grid {
+      display: grid;
+      grid-template-columns: 180px 58px 190px 58px 190px 58px 190px;
+      grid-template-rows: auto auto auto auto;
+      gap: 18px 10px;
+      align-items: center;
+      min-width: 900px;
+    }
+
+    .module {
+      min-height: 104px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf7;
+      box-shadow: 0 8px 20px rgba(29, 36, 48, 0.06);
+    }
+
+    .module strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .module span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .module.external {
+      border-color: rgba(198, 93, 58, 0.44);
+      background: #fff6ef;
+    }
+
+    .module.storage {
+      border-color: rgba(47, 125, 79, 0.42);
+      background: #f5fbf4;
+    }
+
+    .arrow {
+      position: relative;
+      min-height: 48px;
+      border-top: 2px solid var(--accent);
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 9px solid var(--accent);
+    }
+
+    .arrow.down {
+      width: 2px;
+      min-height: 54px;
+      justify-self: center;
+      border-top: 0;
+      border-left: 2px solid var(--accent);
+    }
+
+    .arrow.down::after {
+      top: auto;
+      right: -5px;
+      bottom: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 9px solid var(--accent);
+      border-bottom: 0;
+    }
+
+    .arrow-label {
+      position: absolute;
+      left: 50%;
+      top: -22px;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fffdf7;
+      color: #24424d;
+      font: 12px/1.4 "Cascadia Code", "Consolas", monospace;
+    }
+
+    .arrow.down .arrow-label {
+      top: 15px;
+      left: 12px;
+      transform: none;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend span {
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100% - 20px, 1080px);
+        margin-top: 16px;
+        padding: 24px 18px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .architecture {
+        padding: 14px;
+      }
+
+      th,
+      td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>SocialMediaReader V0 开发文档</h1>
+      <p>
+        V0 目标是构建一个面向个人使用的 AI 工作流调研系统：持续收集 GitHub 和专业技术内容，
+        通过 Dify 完成摘要、分类、对比与周报生成，最终在个人网站中展示。
+      </p>
+      <div class="meta">
+        <span class="pill">版本：V0</span>
+        <span class="pill">主题：AI 工作流搭建</span>
+        <span class="pill">部署：Ubuntu 2 核 4G</span>
+        <span class="pill">日期：2026-05-13</span>
+      </div>
+      <section class="summary" aria-label="V0 摘要">
+        <div class="card">
+          <strong>核心目标</strong>
+          <span>每天低频采集，每周自动生成调研报告，并支持周内查看最新进展。</span>
+        </div>
+        <div class="card">
+          <strong>核心来源</strong>
+          <span>GitHub 项目发现和技术方案对比优先，CSDN、掘金等中文内容作为补充。</span>
+        </div>
+        <div class="card">
+          <strong>核心边界</strong>
+          <span>暂不做视频画面理解、社交媒体深度采集、多用户系统和本地大模型。</span>
+        </div>
+      </section>
+    </header>
+
+    <section>
+      <h2>1. 初始系统设计</h2>
+      <p>
+        系统采用 <code>Dify + 自研采集器 + 个人网站</code> 的组合。Dify 负责 AI 工作流，
+        自研服务负责数据采集、去重、调度、持久化和网站 API。这样可以避免从零搭建 Agent 平台，
+        同时保留对数据来源和报告展示的控制力。
+      </p>
+
+      <div class="architecture" aria-label="SocialMediaReader V0 初始架构图">
+        <div class="architecture-grid">
+          <div class="module external" style="grid-column: 1; grid-row: 1;">
+            <strong>专业信息源</strong>
+            <span>GitHub、官方文档、技术博客、CSDN、掘金。</span>
+          </div>
+          <div class="arrow" style="grid-column: 2; grid-row: 1;">
+            <span class="arrow-label">D1 SourceQuery</span>
+          </div>
+          <div class="module" style="grid-column: 3; grid-row: 1;">
+            <strong>Collector</strong>
+            <span>按主题关键词采集候选项目、文章、Release 和基础元数据。</span>
+          </div>
+          <div class="arrow" style="grid-column: 4; grid-row: 1;">
+            <span class="arrow-label">D2 RawItem</span>
+          </div>
+          <div class="module" style="grid-column: 5; grid-row: 1;">
+            <strong>Processor</strong>
+            <span>清洗正文、URL 去重、内容指纹、基础质量过滤。</span>
+          </div>
+          <div class="arrow" style="grid-column: 6; grid-row: 1;">
+            <span class="arrow-label">D3 AnalysisInput</span>
+          </div>
+          <div class="module external" style="grid-column: 7; grid-row: 1;">
+            <strong>Dify 内容分析</strong>
+            <span>输出相关性、质量评分、摘要、标签和技术路线。</span>
+          </div>
+
+          <div class="arrow down" style="grid-column: 5; grid-row: 2;">
+            <span class="arrow-label">D2/D4</span>
+          </div>
+          <div class="arrow down" style="grid-column: 7; grid-row: 2;">
+            <span class="arrow-label">D4 AnalysisResult</span>
+          </div>
+
+          <div class="module" style="grid-column: 1; grid-row: 3;">
+            <strong>Scheduler</strong>
+            <span>每日采集、每日分析、每周报告，也支持手动刷新。</span>
+          </div>
+          <div class="arrow" style="grid-column: 2; grid-row: 3;">
+            <span class="arrow-label">D0 JobCommand</span>
+          </div>
+          <div class="module storage" style="grid-column: 3 / span 3; grid-row: 3;">
+            <strong>SQLite Storage</strong>
+            <span>保存 topics、sources、github_repos、analyses、reports，作为系统事实来源。</span>
+          </div>
+          <div class="arrow" style="grid-column: 6; grid-row: 3;">
+            <span class="arrow-label">D5 ReportInput</span>
+          </div>
+          <div class="module external" style="grid-column: 7; grid-row: 3;">
+            <strong>Dify 周报生成</strong>
+            <span>基于一周内高质量分析结果生成中英文报告和引用列表。</span>
+          </div>
+
+          <div class="arrow down" style="grid-column: 7; grid-row: 4;">
+            <span class="arrow-label">D6 ReportResult</span>
+          </div>
+          <div class="module" style="grid-column: 1 / span 2; grid-row: 4;">
+            <strong>API Service</strong>
+            <span>提供主题、仪表盘、来源、Repo 和报告查询接口。</span>
+          </div>
+          <div class="arrow" style="grid-column: 3; grid-row: 4;">
+            <span class="arrow-label">D7 ViewModel</span>
+          </div>
+          <div class="module" style="grid-column: 4 / span 2; grid-row: 4;">
+            <strong>Personal Website</strong>
+            <span>展示本周动态、技术路线对比、周报历史和即时进展。</span>
+          </div>
+        </div>
+        <div class="legend">
+          <span>浅橙：外部系统或外部数据源</span>
+          <span>浅绿：持久化存储</span>
+          <span>D0-D7：跨模块交换的数据包代称</span>
+        </div>
+      </div>
+
+      <h3>架构图数据格式说明</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>代称</th>
+            <th>流向</th>
+            <th>数据内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>D0 JobCommand</code></td>
+            <td>Scheduler -> Collector / Processor / Report Job</td>
+            <td>任务类型、topic_id、时间范围、触发方式、重试次数、最大采集数量。</td>
+          </tr>
+          <tr>
+            <td><code>D1 SourceQuery</code></td>
+            <td>Collector -> 专业信息源</td>
+            <td>关键词、source_type、排序方式、时间范围、分页参数、GitHub topic、language 过滤条件。</td>
+          </tr>
+          <tr>
+            <td><code>D2 RawItem</code></td>
+            <td>Collector -> Processor / Storage</td>
+            <td>title、url、author、published_at、collected_at、source_type、description、raw_text、GitHub 元数据。</td>
+          </tr>
+          <tr>
+            <td><code>D3 AnalysisInput</code></td>
+            <td>Processor -> Dify 内容分析</td>
+            <td>topic、title、url、description、readme 摘要、stars、forks、language、license、last_commit_at。</td>
+          </tr>
+          <tr>
+            <td><code>D4 AnalysisResult</code></td>
+            <td>Dify 内容分析 -> Storage</td>
+            <td>relevance_score、quality_score、summary_zh、summary_en、tags、technical_route、pros、cons。</td>
+          </tr>
+          <tr>
+            <td><code>D5 ReportInput</code></td>
+            <td>Storage -> Dify 周报生成</td>
+            <td>topic、period_start、period_end、高分项目列表、技术路线聚合、摘要列表、引用来源。</td>
+          </tr>
+          <tr>
+            <td><code>D6 ReportResult</code></td>
+            <td>Dify 周报生成 -> Storage</td>
+            <td>title、report_zh、report_en、cited_sources、生成时间、报告周期。</td>
+          </tr>
+          <tr>
+            <td><code>D7 ViewModel</code></td>
+            <td>API Service -> Personal Website</td>
+            <td>本周新增项目、top_routes、高分内容、notable_changes、周报列表、当前进展摘要。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        V0 的系统重心不是“全网抓取”，而是建立一个稳定的信息处理闭环：
+        <code>采集 -> 清洗 -> 分析 -> 入库 -> 报告 -> 展示</code>。
+      </p>
+    </section>
+
+    <section>
+      <h2>2. 初始功能设计</h2>
+      <h3>V0 必做功能</h3>
+      <ul>
+        <li>创建和维护研究主题，初始主题为 <code>AI 工作流搭建</code>。</li>
+        <li>按关键词从 GitHub 搜索相关开源项目。</li>
+        <li>抓取 GitHub Repo Detail，包括 stars、forks、license、language、topics、README、release 信息。</li>
+        <li>对采集内容做 URL 去重、内容指纹去重和基础质量过滤。</li>
+        <li>调用 Dify 对项目做相关性评分、质量评分、摘要、标签和技术路线归类。</li>
+        <li>每周自动生成中英文调研报告。</li>
+        <li>在个人网站展示本周新增项目、技术路线分布、高分项目、周报历史和引用链接。</li>
+        <li>支持周内查询当前最新调研进展。</li>
+      </ul>
+      <h3>V0 暂不做功能</h3>
+      <ul>
+        <li>小红书、B站、知乎等社交媒体采集。</li>
+        <li>视频画面理解和音视频转写。</li>
+        <li>复杂 Agent 系统开发。</li>
+        <li>多用户权限、计费、公开分享和团队协作。</li>
+        <li>本地大模型推理和复杂向量数据库。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. 模块划分</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>模块</th>
+            <th>职责</th>
+            <th>V0 范围</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>collector</code></td>
+            <td>外部数据采集。</td>
+            <td>GitHub Search、Repo Detail、Release，后续扩展 RSS、CSDN、掘金。</td>
+          </tr>
+          <tr>
+            <td><code>processor</code></td>
+            <td>清洗、去重、评分和调用 Dify。</td>
+            <td>URL 去重、fingerprint、基础质量评分、内容分析请求。</td>
+          </tr>
+          <tr>
+            <td><code>scheduler</code></td>
+            <td>定时执行采集、分析和报告任务。</td>
+            <td>每日采集、每日分析、每周报告、手动刷新。</td>
+          </tr>
+          <tr>
+            <td><code>storage</code></td>
+            <td>数据持久化。</td>
+            <td>SQLite 存储主题、来源、Repo 元数据、分析结果和报告。</td>
+          </tr>
+          <tr>
+            <td><code>dify_client</code></td>
+            <td>封装 Dify API 调用。</td>
+            <td>内容分析工作流、周报生成工作流。</td>
+          </tr>
+          <tr>
+            <td><code>api</code></td>
+            <td>为个人网站提供接口。</td>
+            <td>主题、仪表盘、报告、来源、Repo 查询。</td>
+          </tr>
+          <tr>
+            <td><code>website</code></td>
+            <td>个人网站页面展示。</td>
+            <td>研究方向、本周动态、周报历史、即时进展。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. 数据库核心</h2>
+      <p>
+        V0 使用 SQLite。它的优势是部署简单、资源占用低、备份方便，适合 2 核 4G 的个人服务器。
+        等内容量和查询复杂度上来后，再迁移到 PostgreSQL。
+      </p>
+      <pre><code>topics
+- id
+- name
+- description
+- keywords
+- created_at
+- is_active
+
+sources
+- id
+- topic_id
+- source_type
+- url
+- title
+- author
+- published_at
+- collected_at
+- language
+- raw_text
+- fingerprint
+- status
+
+github_repos
+- id
+- source_id
+- owner
+- repo
+- stars
+- forks
+- license
+- primary_language
+- topics
+- last_commit_at
+- last_release_at
+- activity_score
+
+analyses
+- id
+- source_id
+- relevance_score
+- quality_score
+- summary_zh
+- summary_en
+- tags
+- technical_route
+- pros
+- cons
+- created_at
+
+reports
+- id
+- topic_id
+- period_start
+- period_end
+- title
+- report_zh
+- report_en
+- cited_sources
+- created_at</code></pre>
+      <div class="note">
+        <strong>注意：</strong>
+        <span>不要只存 embedding 或摘要。必须保留来源链接、采集时间、原始文本摘要和引用关系，否则报告无法追溯。</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Dify 工作流</h2>
+      <p>
+        V0 建议拆成两个 Dify 工作流：内容分析工作流和周报生成工作流。拆开之后便于调试，
+        也能降低单次调用上下文过长导致的不稳定。
+      </p>
+
+      <h3>内容分析工作流</h3>
+      <p>输入一个采集项，输出结构化分析结果。</p>
+      <pre><code>{
+  "topic": "AI 工作流搭建",
+  "title": "...",
+  "url": "...",
+  "description": "...",
+  "readme": "...",
+  "metadata": {
+    "stars": 1200,
+    "forks": 180,
+    "language": "Python",
+    "last_commit_at": "2026-05-10"
+  }
+}</code></pre>
+      <pre><code>{
+  "relevance_score": 0.86,
+  "quality_score": 0.74,
+  "summary_zh": "...",
+  "summary_en": "...",
+  "tags": ["workflow", "rag", "low-code"],
+  "technical_route": "Workflow orchestration for LLM applications",
+  "pros": ["..."],
+  "cons": ["..."]
+}</code></pre>
+
+      <h3>周报生成工作流</h3>
+      <p>输入一周内的高质量分析结果，输出中英文报告和引用来源。</p>
+      <pre><code>{
+  "topic": "AI 工作流搭建",
+  "period": "2026-05-11 ~ 2026-05-17",
+  "items": [
+    {
+      "title": "...",
+      "url": "...",
+      "summary_zh": "...",
+      "technical_route": "...",
+      "quality_score": 0.82
+    }
+  ]
+}</code></pre>
+      <pre><code>{
+  "title": "AI 工作流搭建周报",
+  "report_zh": "...",
+  "report_en": "...",
+  "cited_sources": [
+    {"title": "...", "url": "..."}
+  ]
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>6. API 设计</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>接口</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /topics</code></td>
+            <td>获取研究主题列表。</td>
+          </tr>
+          <tr>
+            <td><code>POST /topics</code></td>
+            <td>创建研究主题。</td>
+          </tr>
+          <tr>
+            <td><code>POST /jobs/collect</code></td>
+            <td>手动触发采集任务。</td>
+          </tr>
+          <tr>
+            <td><code>POST /jobs/analyze</code></td>
+            <td>手动触发内容分析任务。</td>
+          </tr>
+          <tr>
+            <td><code>POST /jobs/generate-weekly-report</code></td>
+            <td>手动生成周报。</td>
+          </tr>
+          <tr>
+            <td><code>GET /dashboard/current?topic_id=1</code></td>
+            <td>获取本周当前调研进展。</td>
+          </tr>
+          <tr>
+            <td><code>GET /reports?topic_id=1</code></td>
+            <td>获取周报列表。</td>
+          </tr>
+          <tr>
+            <td><code>GET /reports/{report_id}</code></td>
+            <td>获取周报详情。</td>
+          </tr>
+          <tr>
+            <td><code>GET /sources?topic_id=1</code></td>
+            <td>获取采集来源列表。</td>
+          </tr>
+          <tr>
+            <td><code>GET /repos?topic_id=1</code></td>
+            <td>获取 GitHub 项目列表。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>即时进展返回结构</h3>
+      <pre><code>{
+  "topic": "AI 工作流搭建",
+  "period_start": "2026-05-11",
+  "period_end": "2026-05-17",
+  "new_repos_this_week": [],
+  "top_routes": [],
+  "high_score_items": [],
+  "notable_changes": [],
+  "pending_items": []
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>7. 部署方式</h2>
+      <p>
+        推荐使用 Docker Compose 部署。开发期可以先在本地 WSL 中跑通，再通过 Git 同步代码和配置模板到服务器。
+        生产环境在服务器上配置独立的 <code>.env</code>、Dify Key、GitHub Token 和数据卷。
+      </p>
+      <pre><code>docker-compose
+- dify
+- social-media-reader-api
+- scheduler
+- sqlite volume
+- nginx</code></pre>
+      <h3>本地到服务器同步策略</h3>
+      <ul>
+        <li><span class="ok">同步：</span>采集器代码、API 代码、页面模板、Docker 配置、Prompt、Dify 工作流导出文件、部署脚本。</li>
+        <li><span class="warn">不同步：</span><code>.env</code> 明文密钥、Docker volumes、Cookie、API Key、生产数据库、大量采集原文。</li>
+      </ul>
+      <p>
+        2 核 4G 条件下不建议本地部署大模型，不建议常驻浏览器自动化，也不建议高频抓取。
+        LLM 统一使用外部 API，采集任务低频执行。
+      </p>
+    </section>
+
+    <section>
+      <h2>8. 开发里程碑</h2>
+      <ol>
+        <li><strong>M1：GitHub 采集可用。</strong> 实现主题关键词、GitHub repo 搜索、repo 元数据入库。</li>
+        <li><strong>M2：Dify 内容分析。</strong> 接入 Dify 工作流，把 repo 转成摘要、标签、评分和技术路线。</li>
+        <li><strong>M3：个人网站首页。</strong> 展示本周新增 repo、评分、摘要、技术路线和链接。</li>
+        <li><strong>M4：周报生成。</strong> 每周自动生成中英文报告并入库。</li>
+        <li><strong>M5：即时进展查询。</strong> 展示本周当前调研情况，支持手动刷新。</li>
+        <li><strong>M6：扩展内容源。</strong> 加入官方博客 RSS、CSDN、掘金等补充来源。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>9. 关键技术决策</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>决策点</th>
+            <th>选择</th>
+            <th>理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AI 工作流平台</td>
+            <td>Dify</td>
+            <td>适合做工作流、知识处理和报告生成，减少自研 Agent 平台成本。</td>
+          </tr>
+          <tr>
+            <td>后端</td>
+            <td>Python FastAPI</td>
+            <td>适合采集、调度、API 和 Dify 集成，生态成熟。</td>
+          </tr>
+          <tr>
+            <td>调度</td>
+            <td>APScheduler</td>
+            <td>V0 单机低频任务足够使用，不需要复杂队列。</td>
+          </tr>
+          <tr>
+            <td>数据库</td>
+            <td>SQLite</td>
+            <td>轻量、易备份、部署成本低，符合个人项目和 2 核 4G 约束。</td>
+          </tr>
+          <tr>
+            <td>前端</td>
+            <td>FastAPI + Jinja2/HTMX 起步</td>
+            <td>先保证报告和数据闭环，减少前后端分离的初始复杂度。</td>
+          </tr>
+          <tr>
+            <td>LLM</td>
+            <td>外部 API</td>
+            <td>服务器资源有限，不适合本地跑大模型。</td>
+          </tr>
+          <tr>
+            <td>内容源</td>
+            <td>GitHub 优先，中文技术社区补充</td>
+            <td>GitHub 更结构化、可信度更高，适合作为专业调研主来源。</td>
+          </tr>
+          <tr>
+            <td>向量检索</td>
+            <td>V0 暂缓</td>
+            <td>早期内容规模可通过结构化摘要和标签支撑周报，避免过早复杂化。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>工程原则：</strong>
+        <span>先建立稳定闭环，再扩展来源；先做结构化报告，再做自由问答；先用低复杂度方案跑起来，再根据真实瓶颈升级。</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
