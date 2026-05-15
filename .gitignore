@@ -84,3 +84,4 @@ packages/
 # Dify Docker
 docker/dify/.env
 docker/dify/volumes/
+docker/dify/images/
