@@ -90,13 +90,21 @@ import json
 import re
 
 def main(llm_output: str) -> dict:
-    # 尝试从 LLM 输出中提取 JSON
     text = llm_output.strip()
 
-    # 处理 markdown 代码块
+    # 1. 剥离 <think>...</think> 思考过程（DeepSeek 等推理模型会输出）
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+
+    # 2. 提取 markdown 代码块中的 JSON
     match = re.search(r'```(?:json)?\s*(.*?)```', text, re.DOTALL)
     if match:
         text = match.group(1).strip()
+
+    # 3. 如果还不是 JSON，尝试找第一个 { 到最后一个 }
+    if not text.startswith('{'):
+        brace_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if brace_match:
+            text = brace_match.group(0)
 
     try:
         data = json.loads(text)
@@ -119,6 +127,8 @@ def main(llm_output: str) -> dict:
         "tags": tags
     }
 ```
+
+> 💡 如果你使用的是 DeepSeek 等推理模型，LLM 输出会包含 `<think>...</think>` 标签，上面的代码会自动剥离它。
 
 4. 输出变量定义：
 
