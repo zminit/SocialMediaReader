@@ -564,15 +564,86 @@ class StorageConfig:
 
 ---
 
-## 待开发模块
-
 ### 5. Scheduler + Orchestrator 模块
-- APScheduler 定时触发
-- 流程编排：串联 Collector → Processor → DifyClient → Storage
-- 三条 Pipeline：每日采集、每日分析、每周报告
+
+**职责**：APScheduler 定时调度 + Orchestrator 流程编排，串联 Collector → Processor → DifyClient → Storage。
+
+**文件结构**：
+```
+scheduler/
+├── __init__.py       # 导出 Scheduler, Orchestrator, SchedulerConfig
+├── models.py         # JobRecord, JobStatus 数据模型
+├── config.py         # SchedulerConfig
+├── orchestrator.py   # Orchestrator 流程编排
+├── scheduler.py      # Scheduler 定时调度
+└── README.md
+```
+
+#### 核心类
+
+**`Orchestrator`** — 流程编排
+```python
+class Orchestrator:
+    def run_collect(self, topic_id: int) -> Dict[str, Any]:
+        """采集流程：Collector → Processor → Storage 写入"""
+    def run_analyze(self, topic_id: int, limit: int = 10) -> Dict[str, Any]:
+        """分析流程：取 pending_analysis sources → DifyClient → Storage"""
+```
+
+**`Scheduler`** — 定时调度
+```python
+class Scheduler:
+    def start(self) -> None: ...
+    def stop(self) -> None: ...
+    def trigger_job(self, job_type: str, topic_id: Optional[int] = None) -> str: ...
+    def get_jobs(self) -> List[Dict]: ...
+```
+
+---
 
 ### 6. API 模块
-- FastAPI 提供查询接口和手动触发
+
+**职责**：FastAPI REST API，提供系统查询接口和手动触发能力。
+
+**文件结构**：
+```
+api/
+├── __init__.py       # 导出 create_app, APIConfig
+├── app.py            # FastAPI 应用工厂 + 生命周期管理
+├── config.py         # APIConfig
+├── dependencies.py   # 依赖注入（get_storage, get_orchestrator 等）
+├── routers/
+│   ├── __init__.py
+│   ├── health.py     # GET /api/health
+│   ├── topics.py     # CRUD /api/topics
+│   ├── sources.py    # GET /api/sources
+│   ├── analysis.py   # GET /api/analysis
+│   ├── jobs.py       # GET/POST /api/jobs
+│   └── stats.py      # GET /api/stats
+└── README.md
+```
+
+#### API 端点
+
+| 方法 | 路径 | 描述 |
+|---|---|---|
+| GET | `/api/health` | 健康检查 |
+| GET | `/api/topics` | 列出所有主题 |
+| POST | `/api/topics` | 创建主题 |
+| GET | `/api/topics/{id}` | 获取主题详情 |
+| PUT | `/api/topics/{id}` | 更新主题 |
+| GET | `/api/sources` | 列出内容源（支持 status/topic_id 过滤） |
+| GET | `/api/sources/{id}` | 获取内容源详情 |
+| GET | `/api/analysis` | 列出分析结果（需 topic_id） |
+| GET | `/api/analysis/{source_id}` | 获取分析结果 |
+| GET | `/api/jobs/status` | 调度器状态 |
+| GET | `/api/jobs` | 列出调度任务 |
+| POST | `/api/jobs/trigger` | 手动触发采集/分析 |
+| GET | `/api/stats` | 系统统计信息 |
+
+---
+
+## 待开发模块
 
 ### 7. Website 模块
 - 个人网站展示
@@ -587,9 +658,9 @@ class StorageConfig:
 | M2 | Processor 清洗+去重+质量评估 | ✅ 完成 |
 | M2.5 | DifyClient 工作流调用 | ✅ 完成 |
 | M3 | Storage 模块 | ✅ 完成 |
-| M4 | Scheduler + Orchestrator | 🚧 待开发 |
+| M4 | Scheduler + Orchestrator | ✅ 完成 |
 | M5 | Dify 内容分析工作流 | 🚧 待开发 |
-| M6 | API + 个人网站 | 🚧 待开发 |
+| M6 | API | ✅ 完成 |
 | M7 | 周报生成 | 🚧 待开发 |
 
 ---
@@ -600,6 +671,6 @@ class StorageConfig:
 - **HTTP 客户端**：httpx（Collector）、requests（DifyClient）
 - **AI 平台**：Dify（自部署）
 - **数据库**：SQLite（已实现，WAL 模式）
-- **Web 框架**：FastAPI（计划）
-- **调度**：APScheduler（计划）
+- **Web 框架**：FastAPI（已实现）
+- **调度**：APScheduler（已实现）
 - **部署**：Docker Compose，Ubuntu 2 核 4G

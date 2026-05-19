@@ -180,6 +180,7 @@ class Database:
             self._connection = sqlite3.connect(
                 self.config.db_path,
                 detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
             )
             self._connection.row_factory = sqlite3.Row
             # 开启 WAL 模式，提升并发读性能
