@@ -9,12 +9,18 @@ Usage:
 import logging
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# 加载 .env 并初始化日志（在所有模块导入之前）
+load_dotenv()
+from logging_config import setup_logging
+setup_logging()
+
 from .config import APIConfig
 from .dependencies import get_app_state
-from .routers import health, topics, sources, analysis, jobs, stats
+from .routers import health, topics, sources, analysis, jobs, stats, logs
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +66,10 @@ def create_app(config: APIConfig = None) -> FastAPI:
         allow_headers=["*"],
     )
 
+    # 请求日志中间件
+    from logging_config.middleware import RequestLoggingMiddleware
+    app.add_middleware(RequestLoggingMiddleware)
+
     # 注册路由
     app.include_router(health.router)
     app.include_router(topics.router)
@@ -67,6 +77,7 @@ def create_app(config: APIConfig = None) -> FastAPI:
     app.include_router(analysis.router)
     app.include_router(jobs.router)
     app.include_router(stats.router)
+    app.include_router(logs.router)
 
     return app
 
@@ -79,7 +90,6 @@ if __name__ == "__main__":
     import uvicorn
 
     config = APIConfig.from_env()
-    logging.basicConfig(level=logging.INFO)
     uvicorn.run(
         "api.app:app",
         host=config.host,
